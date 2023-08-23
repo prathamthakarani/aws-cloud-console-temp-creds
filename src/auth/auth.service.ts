@@ -33,7 +33,6 @@ export class AuthService {
           };
           const token: string = await this.jwtService.signAsync(payload, {
             secret: process.env.JWT_SECRET_KEY,
-            expiresIn: 3000,
           });
           return new CommonResposneDto(
             false,
