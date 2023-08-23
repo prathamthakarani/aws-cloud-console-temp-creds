@@ -23,7 +23,7 @@ export class User {
   })
   role: UserRole;
 
-  @Column('json')
+  @Column('json', { nullable: true })
   policy: object;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
