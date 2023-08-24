@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
 import { User } from 'src/entites';
 import { DataSource } from 'typeorm';
 import { AWSHelper } from 'src/helper/aws.helper';
+import { CommonResposneDto } from 'src/dto/common.response.dto';
 
 @Injectable()
 export class UserService {
@@ -17,10 +18,8 @@ export class UserService {
     if (!getDataByUserId) {
       //throe
     }
-    // const userName = getDataByUserId.userName;
-    const userName = 'bhavya-patell123';
+    const userName = getDataByUserId.userName;
     const policyArn = getDataByUserId.arn;
-    // this.awsHelper.deleteAccessKey(userName, policyArn);
 
     if (getDataByUserId?.accessKeyId) {
       console.log(' i am here in the secont attempt');
@@ -30,7 +29,6 @@ export class UserService {
     const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
       userName,
       policyArn,
-      // expirationMinutes,
     );
     console.log(creds.AccessKeyId);
     const currentDate = new Date();
@@ -40,34 +38,44 @@ export class UserService {
       { credsTs: currentDate, accessKeyId: creds.AccessKeyId },
     );
     console.log(creds);
-    return creds;
+    return new CommonResposneDto(false, 'Creds generated successfully', creds);
   }
 
   //createConsoleCreds
   async createConsoleCreds(userId: number) {
-    const getDataByUserId = await this.dataSource.manager.findOne(User, {
-      where: { userId },
-    });
-    if (!getDataByUserId) {
-      //throe
-    }
-    const userName = getDataByUserId.userName;
-    const policyArn = getDataByUserId.arn;
-    const isConsoleUser = true;
-    const creds = await this.awsHelper.createConsoleCred(
-      userName,
-      policyArn,
-      isConsoleUser,
-    );
-    if (creds) {
-      const currentDate = new Date();
-      await this.dataSource.manager.update(
-        User,
-        { userName },
-        { consoleTs: currentDate },
+    try {
+      const getDataByUserId = await this.dataSource.manager.findOne(User, {
+        where: { userId },
+      });
+      if (!getDataByUserId) {
+        //throe
+      }
+      const userName = getDataByUserId.userName;
+      // const userName = 'test-user-created';
+      const policyArn = getDataByUserId.arn;
+      const isConsoleUser = true;
+      const creds = await this.awsHelper.createConsoleCred(
+        userName,
+        policyArn,
+        isConsoleUser,
       );
-      console.log('Time updated');
+      if (creds) {
+        const currentDate = new Date();
+        await this.dataSource.manager.update(
+          User,
+          { userName },
+          { consoleTs: currentDate },
+        );
+        console.log('Time updated');
+      }
+      // return creds;
+      return new CommonResposneDto(
+        false,
+        'Creds generated successfully',
+        creds,
+      );
+    } catch (error) {
+      throw new BadGatewayException('Not able to process right now');
     }
-    return creds;
   }
 }
