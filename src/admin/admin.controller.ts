@@ -12,4 +12,9 @@ export class AdminController {
   testhello() {
     return 'hello';
   }
+
+  @Get('/audit-logs')
+  async getLogs() {
+    return await this.adminService.getLogs();
+  }
 }

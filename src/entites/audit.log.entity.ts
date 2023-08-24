@@ -1,32 +1,30 @@
-//Add audit logs entity
 import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
-  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
 @Entity()
-export class logging {
+export class Log {
   @PrimaryGeneratedColumn()
-  id: number;
+  requestId: number;
 
-  @ManyToOne(() => User, (user) => user.userId)
-  @JoinColumn({ name: 'userId' })
-  userId: number;
+  @Column({ nullable: true })
+  host: string;
 
-  @Column()
-  url: string;
+  @Column({ nullable: true })
+  path: string;
 
-  @Column()
-  body: string;
-
-  @Column()
+  @Column({ nullable: true })
   method: string;
 
+  @Column({ nullable: true })
+  userId: string;
+
   @CreateDateColumn()
-  date: Date;
+  timestamp: Date;
+
+  @Column({ nullable: true, default: null })
+  response: string;
 }
