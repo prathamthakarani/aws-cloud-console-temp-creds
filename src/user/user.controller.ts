@@ -1,10 +1,18 @@
-import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserRole } from 'src/entites';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard } from 'src/guard/role.guard';
+import { LoggingInterceptor } from 'src/interceptor/logging.interceptor';
 
 @Controller('user')
+@UseInterceptors(LoggingInterceptor)
 @UseGuards(AuthGuard('jwt'), new RoleGuard(UserRole.USER))
 export class UserController {
   constructor(private userService: UserService) {}

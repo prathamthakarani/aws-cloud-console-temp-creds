@@ -25,6 +25,9 @@ export class Log {
   @CreateDateColumn()
   timestamp: Date;
 
+  @Column({ nullable: true })
+  userName: string;
+
   @Column({ nullable: true, default: null })
   response: string;
 }

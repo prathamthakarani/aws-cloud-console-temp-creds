@@ -18,12 +18,6 @@ import { LoggingInterceptor } from './interceptor/logging.interceptor';
     UserModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}

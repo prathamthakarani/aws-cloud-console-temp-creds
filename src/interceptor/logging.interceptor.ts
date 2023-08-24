@@ -26,7 +26,8 @@ export class LoggingInterceptor implements NestInterceptor {
       const userId = user?.userId;
       const host = headers.host;
       const path = route.path;
-      const log = new LogRequestDto(host, path, method, userId);
+      const userName = user?.userName;
+      const log = new LogRequestDto(host, path, method, userId, userName);
       const generated = await this.logservice.addlog(log);
       this.logId = generated.identifiers[0].requestId;
     } catch (error) {
