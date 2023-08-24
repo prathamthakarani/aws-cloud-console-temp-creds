@@ -214,4 +214,17 @@ export class AWSHelper {
       }
     }
   }
+
+  async deleteConsoleAccess(userName: string, policyArn: string) {
+    try {
+      console.log(userName, policyArn);
+
+      // I think I have to make return here
+      await this.iam.deleteLoginProfile({ UserName: userName }).promise();
+      console.log('profile deleted');
+    } catch (err) {
+      console.log('Error', err);
+      return 'error';
+    }
+  }
 }

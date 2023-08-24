@@ -6,8 +6,9 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { UserModule } from './user/user.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { LoggingInterceptor } from './interceptor/logging.interceptor';
+import { CronModule } from './cron/cron.module';
+import { ScheduleModule } from '@nestjs/schedule';
+// import { CronModule } from './cron/cron.module';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { LoggingInterceptor } from './interceptor/logging.interceptor';
     AuthModule,
     AdminModule,
     UserModule,
+    CronModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
