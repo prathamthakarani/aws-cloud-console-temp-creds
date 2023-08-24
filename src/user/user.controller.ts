@@ -5,21 +5,19 @@ import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard } from 'src/guard/role.guard';
 
 @Controller('user')
-@UseGuards(AuthGuard('jwt'), new RoleGuard(UserRole.ADMIN))
+@UseGuards(AuthGuard('jwt'), new RoleGuard(UserRole.USER))
 export class UserController {
   constructor(private userService: UserService) {}
 
   @Post('/create-creds')
   async getCreds(@Req() req) {
     const creds = await this.userService.getCreds(req.user.userId);
-    return;
-    // done here
+    return creds;
   }
 
   @Post('/create-console')
   async createConsole(@Req() req) {
-    console.log('Helloa');
     const creds = await this.userService.createConsoleCreds(req.user.userId);
-    return;
+    return creds;
   }
 }

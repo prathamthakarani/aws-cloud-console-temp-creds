@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { User } from 'src/entites';
 import { DataSource } from 'typeorm';
 import { AWSHelper } from 'src/helper/aws.helper';
-// import awsHelper from 'src/helper/aws.helper';
 
 @Injectable()
 export class UserService {
@@ -19,16 +18,29 @@ export class UserService {
       //throe
     }
     // const userName = getDataByUserId.userName;
-    const userName = 'bhavya-patel';
-    const policyArn = 'arn:aws:iam::aws:policy/IAMFullAccess';
-    const expirationMinutes = 30;
-    const creds = await this.awsHelper.createTemporaryCredentials(
+    const userName = 'bhavya-patell123';
+    const policyArn = getDataByUserId.arn;
+    // this.awsHelper.deleteAccessKey(userName, policyArn);
+
+    if (getDataByUserId?.accessKeyId) {
+      console.log(' i am here in the secont attempt');
+      this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
+      console.log('access key deleted');
+    }
+    const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
       userName,
       policyArn,
-      expirationMinutes,
+      // expirationMinutes,
+    );
+    console.log(creds.AccessKeyId);
+    const currentDate = new Date();
+    const updateData = await this.dataSource.manager.update(
+      User,
+      { userName },
+      { credsTs: currentDate, accessKeyId: creds.AccessKeyId },
     );
     console.log(creds);
-    console.log(userId);
+    return creds;
   }
 
   //createConsoleCreds
@@ -39,13 +51,23 @@ export class UserService {
     if (!getDataByUserId) {
       //throe
     }
-    // const userName = getDataByUserId.userName;
-    const userName = 'parth-patel-123';
-    const policyArn = 'arn:aws:iam::aws:policy/IAMFullAccess';
-    // const creds = await this.awsHelper.createIAMUserWithPermissions(userName);
-    //createOrGetUser
-    const creds = await this.awsHelper.createOrGetUser(userName, policyArn);
-    console.log(creds);
-    console.log(userId);
+    const userName = getDataByUserId.userName;
+    const policyArn = getDataByUserId.arn;
+    const isConsoleUser = true;
+    const creds = await this.awsHelper.createConsoleCred(
+      userName,
+      policyArn,
+      isConsoleUser,
+    );
+    if (creds) {
+      const currentDate = new Date();
+      await this.dataSource.manager.update(
+        User,
+        { userName },
+        { consoleTs: currentDate },
+      );
+      console.log('Time updated');
+    }
+    return creds;
   }
 }

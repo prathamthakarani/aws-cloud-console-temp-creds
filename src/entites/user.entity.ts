@@ -23,12 +23,15 @@ export class User {
   })
   role: UserRole;
 
-  @Column('json', { nullable: true })
-  policy: object;
+  @Column({ nullable: true })
+  arn: string;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
   credsTs: Date;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
   consoleTs: Date;
+
+  @Column({ nullable: true })
+  accessKeyId: string;
 }
