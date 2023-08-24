@@ -14,9 +14,11 @@ AWS.config.update({
 const iam = new AWS.IAM();
 
 export class AWSHelper {
+  private iam: AWS.IAM;
   private sts: STS;
   constructor() {
     this.sts = new STS();
+    this.iam = new AWS.IAM({ apiVersion: '2010-05-08' });
   }
   /**
    * generate aws temporary credentials
@@ -69,6 +71,102 @@ export class AWSHelper {
       );
     } catch (error) {
       console.error('Error:', error);
+    }
+  }
+
+  async createOrGetUser(userName: string, policyArn: string): Promise<void> {
+    const params = {
+      UserName: userName,
+    };
+
+    try {
+      const data = await this.iam.getUser(params).promise();
+      console.log(`User ${userName} already exists`, data.User.UserId);
+    } catch (err) {
+      if (err.code === 'NoSuchEntity') {
+        try {
+          const createUserResponse = await this.iam
+            .createUser(params)
+            .promise();
+          console.log('Success', createUserResponse);
+          // Attach the specified policy
+          const attachPolicyParams = {
+            PolicyArn: policyArn,
+            UserName: userName,
+          };
+
+          await this.iam.attachUserPolicy(attachPolicyParams).promise();
+          console.log('Policy attatched');
+          const createLoginProfileParams = {
+            UserName: userName,
+            Password: 'temporaryPasswor56332869358629', // Replace with a secure temporary password
+            PasswordResetRequired: true, // User must reset password on first login
+          };
+
+          await this.iam.createLoginProfile(createLoginProfileParams).promise();
+          console.log(createLoginProfileParams);
+          const expirationMinutes = 30;
+          await this.createTemporaryCredentials(
+            userName,
+            policyArn,
+            expirationMinutes,
+          );
+        } catch (createErr) {
+          console.log('Error', createErr);
+        }
+      } else {
+        console.log('Error', err);
+      }
+    }
+  }
+
+  async createTemporaryCredentials(
+    userName: string,
+    policyArn: string,
+    expirationMinutes: number,
+  ): Promise<void> {
+    console.log('In the function');
+    // const policy = {
+    //   Version: '2012-10-17',
+    //   Statement: [
+    //     {
+    //       Effect: 'Allow',
+    //       Action: [
+    //         'iam:*',
+    //         'organizations:DescribeAccount',
+    //         'organizations:DescribeOrganization',
+    //         'organizations:DescribeOrganizationalUnit',
+    //         'organizations:DescribePolicy',
+    //         'organizations:ListChildren',
+    //         'organizations:ListParents',
+    //         'organizations:ListPoliciesForTarget',
+    //         'organizations:ListRoots',
+    //         'organizations:ListPolicies',
+    //         'organizations:ListTargetsForPolicy',
+    //       ],
+    //       Resource: '*',
+    //     },
+    //   ],
+    // };
+
+    const assumeRoleParams = {
+      RoleSessionName: `TemporarySession-${userName}`,
+      DurationSeconds: expirationMinutes * 60, // Expiration in seconds
+      RoleArn: policyArn,
+    };
+
+    try {
+      const assumeRoleResponse = await this.sts
+        .assumeRole(assumeRoleParams)
+        .promise();
+      console.log(
+        'Assumed role with temporary credentials',
+        assumeRoleResponse,
+      );
+
+      // Here you can use assumeRoleResponse.Credentials to work with the temporary credentials
+    } catch (err) {
+      console.log('Error assuming role', err);
     }
   }
 }

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { logging } from './audit.log.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -8,6 +9,7 @@ export enum UserRole {
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
+  @OneToMany(() => logging, (logId) => logId.userId)
   userId: number;
 
   @Column({ unique: true })

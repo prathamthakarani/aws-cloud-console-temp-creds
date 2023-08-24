@@ -20,7 +20,13 @@ export class UserService {
     }
     // const userName = getDataByUserId.userName;
     const userName = 'bhavya-patel';
-    const creds = await this.awsHelper.getCreds(userName);
+    const policyArn = 'arn:aws:iam::aws:policy/IAMFullAccess';
+    const expirationMinutes = 30;
+    const creds = await this.awsHelper.createTemporaryCredentials(
+      userName,
+      policyArn,
+      expirationMinutes,
+    );
     console.log(creds);
     console.log(userId);
   }
@@ -34,8 +40,11 @@ export class UserService {
       //throe
     }
     // const userName = getDataByUserId.userName;
-    const userName = 'bhavya-patel1';
-    const creds = await this.awsHelper.createIAMUserWithPermissions(userName);
+    const userName = 'parth-patel-123';
+    const policyArn = 'arn:aws:iam::aws:policy/IAMFullAccess';
+    // const creds = await this.awsHelper.createIAMUserWithPermissions(userName);
+    //createOrGetUser
+    const creds = await this.awsHelper.createOrGetUser(userName, policyArn);
     console.log(creds);
     console.log(userId);
   }
