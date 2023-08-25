@@ -41,6 +41,7 @@ export class AWSHelper {
       return accessKey.AccessKey;
     } catch (error) {
       console.error('Error:', error);
+      throw new Error(`Error deleting IAM user: ${error.message}`);
     }
   }
 
@@ -213,7 +214,6 @@ export class AWSHelper {
         return false; // User does not exist
       } else {
         console.log('Error', err);
-        throw err;
       }
     }
   }

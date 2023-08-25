@@ -21,30 +21,42 @@ export class UserService {
    * @returns
    */
   async getCreds(userId: number) {
-    const getDataByUserId = await this.dataSource.manager.findOne(User, {
-      where: { userId },
-    });
-    const userName = getDataByUserId.userName;
-    const policyArn = getDataByUserId.arn;
+    try {
+      const getDataByUserId = await this.dataSource.manager.findOne(User, {
+        where: { userId },
+      });
+      const userName = getDataByUserId.userName;
+      const policyArn = getDataByUserId.arn;
 
-    if (getDataByUserId?.accessKeyId) {
-      this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
-      console.log('access key deleted');
+      if (getDataByUserId?.accessKeyId) {
+        await this.awsHelper.deleteAccessKey(
+          userName,
+          getDataByUserId.accessKeyId,
+        );
+        console.log('access key deleted');
+      }
+      const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
+        userName,
+        policyArn,
+      );
+      const currentDate = new Date();
+      currentDate.setMinutes(currentDate.getMinutes() + 30);
+      console.log(creds);
+      await this.dataSource.manager.update(
+        User,
+        { userName },
+        { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
+      );
+      console.log(creds);
+      return new CommonResposneDto(
+        false,
+        'Creds generated successfully',
+        creds,
+      );
+    } catch (error) {
+      console.log(error);
+      throw new BadGatewayException('Not able to process');
     }
-    const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
-      userName,
-      policyArn,
-    );
-    const currentDate = new Date();
-    currentDate.setMinutes(currentDate.getMinutes() + 30);
-    console.log(creds);
-    await this.dataSource.manager.update(
-      User,
-      { userName },
-      { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
-    );
-    console.log(creds);
-    return new CommonResposneDto(false, 'Creds generated successfully', creds);
   }
 
   /**
