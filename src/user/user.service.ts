@@ -37,6 +37,7 @@ export class UserService {
     );
     const currentDate = new Date();
     currentDate.setMinutes(currentDate.getMinutes() + 30);
+    console.log(creds);
     await this.dataSource.manager.update(
       User,
       { userName },

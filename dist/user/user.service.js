@@ -36,6 +36,7 @@ let UserService = exports.UserService = class UserService {
         const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(userName, policyArn);
         const currentDate = new Date();
         currentDate.setMinutes(currentDate.getMinutes() + 30);
+        console.log(creds);
         await this.dataSource.manager.update(entites_1.User, { userName }, { credsTs: currentDate, accessKeyId: creds.AccessKeyId });
         console.log(creds);
         return new common_response_dto_1.CommonResposneDto(false, 'Creds generated successfully', creds);
