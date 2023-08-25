@@ -11,8 +11,12 @@ export class AuthService {
     @Inject('DataSource') private dataSource: DataSource,
     private jwtService: JwtService,
   ) {}
-  //loginUser
 
+  /**
+   * Login user route
+   * @param loginDto
+   * @returns
+   */
   async loginUser(loginDto: UserLoginDto): Promise<CommonResposneDto> {
     const { userName, password } = loginDto;
     try {
@@ -36,7 +40,7 @@ export class AuthService {
           });
           return new CommonResposneDto(
             false,
-            'You are log in successfully',
+            'You are logged in successfully',
             token,
           );
         } else {

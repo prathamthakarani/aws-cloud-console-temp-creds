@@ -1,9 +1,8 @@
-import { STS } from 'aws-sdk';
 import * as AWS from 'aws-sdk';
 
 AWS.config.update({
   credentials: {
-    accessKeyId: 'AKIA5U3C2KXRZEWB6EP4',
+    accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: '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',
   },
   region: 'us-east-1',
@@ -13,9 +12,7 @@ const iam = new AWS.IAM();
 
 export class AWSHelper {
   private iam: AWS.IAM;
-  private sts: STS;
   constructor() {
-    this.sts = new STS();
     this.iam = new AWS.IAM({ apiVersion: '2010-05-08' });
   }
 
@@ -86,7 +83,11 @@ export class AWSHelper {
       if (findExistingUser) {
         //delete user
         console.log('here');
-        return await this.deleteIAMUser(userName, policyArn, isConsoleUser);
+        return await this.deleteLoginProfile(
+          userName,
+          policyArn,
+          isConsoleUser,
+        );
       }
       return await this.createIAMUser(userName, policyArn, isConsoleUser);
       // return await this.createLoginProfileForConsole(userName);
@@ -105,11 +106,13 @@ export class AWSHelper {
    */
   async createConsoleCred(userName: string, policyArn: string, isConsoleUser) {
     try {
-      return await this.createIAMUserForConsole(
+      const creds = await this.createIAMUserForConsole(
         userName,
         policyArn,
         isConsoleUser,
       );
+      console.log(creds);
+      return creds;
     } catch (error) {
       console.log(error);
     }
@@ -141,7 +144,7 @@ export class AWSHelper {
    * @param isConsoleUser
    * @returns
    */
-  async deleteIAMUser(userName: string, policyArn: string, isConsoleUser) {
+  async deleteLoginProfile(userName: string, policyArn: string, isConsoleUser) {
     try {
       console.log(userName, policyArn);
       if (isConsoleUser) {
@@ -227,4 +230,27 @@ export class AWSHelper {
       return 'error';
     }
   }
+
+  // async deleteIAMUser(
+  //   userName: string,
+  //   userPolicyArn: string,
+  //   // arnName: string,
+  // ) {
+  //   try {
+  //     const findExistingUser = await this.findExistingUser(userName);
+  //     console.log(findExistingUser);
+  //     if (!findExistingUser) {
+  //       return 'No user find to delete';
+  //     }
+  //     // Detach user policy
+  //     await this.iam
+  //       .detachUserPolicy({ UserName: userName, PolicyArn: userPolicyArn })
+  //       .promise();
+
+  //     // Delete the user
+  //     await this.iam.deleteUser({ UserName: userName }).promise();
+  //   } catch (error) {
+  //     throw new Error(`Error deleting IAM user: ${error.message}`);
+  //   }
+  // }
 }

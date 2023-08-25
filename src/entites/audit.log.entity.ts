@@ -7,8 +7,8 @@ import {
 
 @Entity()
 export class Log {
-  @PrimaryGeneratedColumn()
-  requestId: number;
+  @PrimaryGeneratedColumn('uuid')
+  requestId: string;
 
   @Column({ nullable: true })
   host: string;
@@ -27,7 +27,4 @@ export class Log {
 
   @Column({ nullable: true })
   userName: string;
-
-  @Column({ nullable: true, default: null })
-  response: string;
 }

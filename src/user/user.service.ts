@@ -1,4 +1,9 @@
-import { BadGatewayException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { User } from 'src/entites';
 import { DataSource } from 'typeorm';
 import { AWSHelper } from 'src/helper/aws.helper';
@@ -10,14 +15,15 @@ export class UserService {
     @Inject('DataSource') private dataSource: DataSource,
     private awsHelper: AWSHelper,
   ) {}
-  // getCreds
+  /**
+   * Get IAM user creds (access & secret key)
+   * @param userId
+   * @returns
+   */
   async getCreds(userId: number) {
     const getDataByUserId = await this.dataSource.manager.findOne(User, {
       where: { userId },
     });
-    if (!getDataByUserId) {
-      //throe
-    }
     const userName = getDataByUserId.userName;
     const policyArn = getDataByUserId.arn;
 
@@ -30,9 +36,9 @@ export class UserService {
       userName,
       policyArn,
     );
-    console.log(creds.AccessKeyId);
     const currentDate = new Date();
-    const updateData = await this.dataSource.manager.update(
+    currentDate.setMinutes(currentDate.getMinutes() + 30);
+    await this.dataSource.manager.update(
       User,
       { userName },
       { credsTs: currentDate, accessKeyId: creds.AccessKeyId },
@@ -42,6 +48,11 @@ export class UserService {
   }
 
   //createConsoleCreds
+  /**
+   * Create console creds
+   * @param userId
+   * @returns
+   */
   async createConsoleCreds(userId: number) {
     try {
       const getDataByUserId = await this.dataSource.manager.findOne(User, {
@@ -61,6 +72,8 @@ export class UserService {
       );
       if (creds) {
         const currentDate = new Date();
+        currentDate.setMinutes(currentDate.getMinutes() + 30);
+        console.log(currentDate);
         await this.dataSource.manager.update(
           User,
           { userName },
@@ -78,4 +91,29 @@ export class UserService {
       throw new BadGatewayException('Not able to process right now');
     }
   }
+
+  // // Function to delete access key or console-creds
+  // //deleteAccessKey
+  // async deleteAccessKey(userId) {
+  //   const data = await this.dataSource.manager.findOne(User, {
+  //     where: { userId },
+  //   });
+  //   if (!data.accessKeyId) {
+  //     throw new BadRequestException('Access key id not found to delete');
+  //   }
+  //   await this.awsHelper.deleteAccessKey(data.userName, data.accessKeyId);
+  //   await this.dataSource.manager.update(
+  //     User,
+  //     { userId: data.userId },
+  //     { credsTs: null, accessKeyId: null },
+  //   );
+  //   return new CommonResposneDto(false, 'Creds deleted successfully');
+  // }
+
+  // //deleteConsoleCreds
+  // async deleteConsoleCreds(userId) {
+  //   const data = await this.dataSource.manager.findOne(User, {
+  //     where: { userId },
+  //   });
+  // }
 }

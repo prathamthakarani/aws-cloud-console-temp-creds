@@ -16,15 +16,15 @@ export class LogService {
     }
   }
 
-  async addLogResponse(requestId, response) {
-    try {
-      const addedresponse = await this.dataSource.manager.update(
-        Log,
-        { requestId },
-        { response },
-      );
-    } catch (error) {
-      console.log(`Log not updated \n ${error}`);
-    }
-  }
+  // async addLogResponse(requestId, response) {
+  //   try {
+  //     const addedresponse = await this.dataSource.manager.update(
+  //       Log,
+  //       { requestId },
+  //       { response },
+  //     );
+  //   } catch (error) {
+  //     console.log(`Log not updated \n ${error}`);
+  //   }
+  // }
 }
