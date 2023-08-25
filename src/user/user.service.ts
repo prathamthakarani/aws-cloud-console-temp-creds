@@ -41,7 +41,7 @@ export class UserService {
     await this.dataSource.manager.update(
       User,
       { userName },
-      { credsTs: currentDate, accessKeyId: creds.AccessKeyId },
+      { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
     );
     console.log(creds);
     return new CommonResposneDto(false, 'Creds generated successfully', creds);
