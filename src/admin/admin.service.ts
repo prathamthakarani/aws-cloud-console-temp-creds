@@ -31,12 +31,10 @@ export class AdminService {
     }
 
     if (startDate) {
-      //start
       whereObject.timestamp = MoreThan(startDate);
     }
 
     if (endDate) {
-      //end
       whereObject.timestamp = LessThan(endDate);
     }
 

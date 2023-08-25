@@ -17,6 +17,7 @@ export const DbConnection = [
         synchronize: true,
         entities: [User, Log],
         logging: true,
+        ssl: { rejectUnauthorized: false },
       });
       const db = await datasource.initialize();
       console.log('Connected with', process.env.DB_PORT);

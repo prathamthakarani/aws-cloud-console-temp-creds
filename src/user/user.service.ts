@@ -28,7 +28,6 @@ export class UserService {
     const policyArn = getDataByUserId.arn;
 
     if (getDataByUserId?.accessKeyId) {
-      console.log(' i am here in the secont attempt');
       this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
       console.log('access key deleted');
     }
@@ -47,7 +46,6 @@ export class UserService {
     return new CommonResposneDto(false, 'Creds generated successfully', creds);
   }
 
-  //createConsoleCreds
   /**
    * Create console creds
    * @param userId
@@ -65,7 +63,7 @@ export class UserService {
       // const userName = 'test-user-created';
       const policyArn = getDataByUserId.arn;
       const isConsoleUser = true;
-      const creds = await this.awsHelper.createConsoleCred(
+      const creds: any = await this.awsHelper.createConsoleCred(
         userName,
         policyArn,
         isConsoleUser,
@@ -79,7 +77,8 @@ export class UserService {
           { userName },
           { consoleTs: currentDate },
         );
-        console.log('Time updated');
+
+        creds.accountId = process.env.AWS_ACCOUNT_ID;
       }
       // return creds;
       return new CommonResposneDto(
@@ -92,28 +91,63 @@ export class UserService {
     }
   }
 
-  // // Function to delete access key or console-creds
-  // //deleteAccessKey
-  // async deleteAccessKey(userId) {
-  //   const data = await this.dataSource.manager.findOne(User, {
-  //     where: { userId },
-  //   });
-  //   if (!data.accessKeyId) {
-  //     throw new BadRequestException('Access key id not found to delete');
-  //   }
-  //   await this.awsHelper.deleteAccessKey(data.userName, data.accessKeyId);
-  //   await this.dataSource.manager.update(
-  //     User,
-  //     { userId: data.userId },
-  //     { credsTs: null, accessKeyId: null },
-  //   );
-  //   return new CommonResposneDto(false, 'Creds deleted successfully');
-  // }
+  /**
+   * Function to delete access key
+   * @param userId
+   * @returns
+   */
+  async deleteAccessKey(userId) {
+    try {
+      const data = await this.dataSource.manager.findOne(User, {
+        where: { userId },
+      });
+      if (!data.accessKeyId) {
+        throw new BadRequestException('Access key id not found to delete');
+      }
+      await this.awsHelper.deleteAccessKey(data.userName, data.accessKeyId);
+      await this.dataSource.manager.update(
+        User,
+        { userId: data.userId },
+        { credsTs: null, accessKeyId: null },
+      );
+      return new CommonResposneDto(false, 'Creds deleted successfully');
+    } catch (error) {
+      console.log(error);
+      if (error.response.statusCode === 400) {
+        throw new BadRequestException(error.response);
+      }
+      throw new BadGatewayException('Not able to process right now');
+    }
+  }
 
-  // //deleteConsoleCreds
-  // async deleteConsoleCreds(userId) {
-  //   const data = await this.dataSource.manager.findOne(User, {
-  //     where: { userId },
-  //   });
-  // }
+  /**
+   * Function to delete console creds
+   * @param userId
+   * @returns
+   */
+  async deleteConsoleCreds(userId) {
+    try {
+      const data = await this.dataSource.manager.findOne(User, {
+        where: { userId },
+      });
+      if (!data.consoleTs) {
+        throw new BadRequestException('Console creds are not found to delete');
+      }
+      await this.awsHelper.deleteConsoleAccess(data.userName, data.arn);
+
+      await this.dataSource.manager.update(
+        User,
+        { userId: data.userId },
+        { consoleTs: null },
+      );
+
+      return new CommonResposneDto(false, 'Console creds deleted successfully');
+    } catch (error) {
+      console.log(error);
+      if (error.response.statusCode === 400) {
+        throw new BadRequestException(error.response);
+      }
+      throw new BadGatewayException('Not able to process right now');
+    }
+  }
 }

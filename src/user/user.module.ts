@@ -6,5 +6,6 @@ import { AWSHelper } from 'src/helper/aws.helper';
 @Module({
   controllers: [UserController],
   providers: [UserService, AWSHelper],
+  exports: [UserService],
 })
 export class UserModule {}

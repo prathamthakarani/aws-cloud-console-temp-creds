@@ -3,9 +3,9 @@ import * as AWS from 'aws-sdk';
 AWS.config.update({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: 'HBiSIYl0OmVOK93ODXUoxHXsKJCX7CR0FzckHCyd',
+    secretAccessKey: process.env.AWS_SECRET_KEY,
   },
-  region: 'us-east-1',
+  region: process.env.AWS_REGION,
 });
 
 const iam = new AWS.IAM();

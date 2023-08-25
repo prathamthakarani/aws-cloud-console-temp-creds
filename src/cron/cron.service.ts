@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { User } from 'src/entites';
 import { AWSHelper } from 'src/helper/aws.helper';
+import { UserService } from 'src/user/user.service';
 import { DataSource, LessThan } from 'typeorm';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class CronService {
   constructor(
     @Inject('DataSource') private dataSource: DataSource,
     private awsHelper: AWSHelper,
+    private userService: UserService,
   ) {}
   private readonly logger = new Logger('triggered');
 
@@ -37,13 +39,7 @@ export class CronService {
     // If data exist update it
     if (findConsoleCreds?.length !== 0) {
       for (const item of findConsoleCreds) {
-        await this.awsHelper.deleteConsoleAccess(item.userName, item.arn);
-
-        await this.dataSource.manager.update(
-          User,
-          { userId: item.userId },
-          { consoleTs: null },
-        );
+        await this.userService.deleteConsoleCreds(item.userId);
       }
 
       console.log(
@@ -53,13 +49,7 @@ export class CronService {
 
     if (findCreds?.length !== 0) {
       for (const item of findCreds) {
-        await this.awsHelper.deleteAccessKey(item.userName, item.accessKeyId);
-
-        await this.dataSource.manager.update(
-          User,
-          { userId: item.userId },
-          { credsTs: null, accessKeyId: null },
-        );
+        await this.userService.deleteAccessKey(item.userId);
       }
 
       console.log(`Removed creds access: numbers: ${findCreds.length}`);
