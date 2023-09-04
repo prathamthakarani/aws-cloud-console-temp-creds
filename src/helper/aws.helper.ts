@@ -19,16 +19,16 @@ export class AWSHelper {
   /**
    * Create IAM user with access key
    * @param username
-   * @param policyArn
+   * @param policy
    * @returns
    */
-  async createIAMUserWithKeysAndPolicy(username, policyArn) {
+  async createIAMUserWithKeysAndPolicy(username, policy, policyName) {
     try {
       // check existance of IAM user
       const findExistingUser = await this.findExistingUser(username);
       if (!findExistingUser) {
         // If not exist create IAM user
-        await this.createIAMUser(username, policyArn, false);
+        await this.createIAMUser(username, policy, false, policyName);
         console.log('IAM user created');
       }
       const createAccessKeyParams = {
@@ -69,14 +69,15 @@ export class AWSHelper {
   /**
    * Helper function to createIAM user for console
    * @param userName
-   * @param policyArn
+   * @param policy
    * @param isConsoleUser
    * @returns
    */
   async createIAMUserForConsole(
     userName: string,
-    policyArn: string,
+    policy: string,
     isConsoleUser,
+    policyName,
   ) {
     try {
       const findExistingUser = await this.findExistingUser(userName);
@@ -84,13 +85,14 @@ export class AWSHelper {
       if (findExistingUser) {
         //delete user
         console.log('here');
-        return await this.deleteLoginProfile(
-          userName,
-          policyArn,
-          isConsoleUser,
-        );
+        return await this.deleteLoginProfile(userName, policy, isConsoleUser);
       }
-      return await this.createIAMUser(userName, policyArn, isConsoleUser);
+      return await this.createIAMUser(
+        userName,
+        policy,
+        isConsoleUser,
+        policyName,
+      );
       // return await this.createLoginProfileForConsole(userName);
     } catch (error) {
       console.log(error);
@@ -101,16 +103,22 @@ export class AWSHelper {
   /**
    * Create IAM user for console
    * @param userName
-   * @param policyArn
+   * @param policy
    * @param isConsoleUser
    * @returns
    */
-  async createConsoleCred(userName: string, policyArn: string, isConsoleUser) {
+  async createConsoleCred(
+    userName: string,
+    policy: string,
+    isConsoleUser,
+    policyName,
+  ) {
     try {
       const creds = await this.createIAMUserForConsole(
         userName,
-        policyArn,
+        policy,
         isConsoleUser,
+        policyName,
       );
       console.log(creds);
       return creds;
@@ -126,7 +134,7 @@ export class AWSHelper {
    */
   async createLoginProfileForConsole(userName) {
     // we have to implement random password here
-    const randomTempPassword = 'randomPassword@123';
+    const randomTempPassword = this.generateRandomPassword(12);
 
     const createLoginProfileParams = {
       UserName: userName,
@@ -141,13 +149,13 @@ export class AWSHelper {
   /**
    * Delete login profile and create Login profile on new request
    * @param userName
-   * @param policyArn
+   * @param policy
    * @param isConsoleUser
    * @returns
    */
-  async deleteLoginProfile(userName: string, policyArn: string, isConsoleUser) {
+  async deleteLoginProfile(userName: string, policy: string, isConsoleUser) {
     try {
-      console.log(userName, policyArn);
+      console.log(userName, policy);
       if (isConsoleUser) {
         // I think I have to make return here
         await this.iam.deleteLoginProfile({ UserName: userName }).promise();
@@ -165,31 +173,35 @@ export class AWSHelper {
   /**
    * Create IAM user helper function
    * @param userName
-   * @param policyArn
+   * @param policy
    * @param isConsoleUser
    * @returns
    */
   async createIAMUser(
     userName: string,
-    policyArn: string,
+    policy: string,
     isConsoleUser: boolean,
+    policyName: string,
   ) {
     const params = {
       UserName: userName,
     };
 
     try {
+      console.log(policyName, '**********************************');
       const createUserResponse = await this.iam.createUser(params).promise();
       const attachPolicyParams = {
-        PolicyArn: policyArn,
+        PolicyName: policyName,
+        PolicyDocument: JSON.stringify(policy),
         UserName: userName,
       };
 
-      await this.iam.attachUserPolicy(attachPolicyParams).promise();
+      await this.iam.putUserPolicy(attachPolicyParams).promise();
       if (isConsoleUser) {
         console.log('This should be not execute');
         return await this.createLoginProfileForConsole(userName);
       }
+      console.log('IAM user created');
     } catch (err) {
       console.log('Error', err);
     }
@@ -218,9 +230,9 @@ export class AWSHelper {
     }
   }
 
-  async deleteConsoleAccess(userName: string, policyArn: string) {
+  async deleteConsoleAccess(userName: string, policy: string) {
     try {
-      console.log(userName, policyArn);
+      console.log(userName, policy);
 
       // I think I have to make return here
       await this.iam.deleteLoginProfile({ UserName: userName }).promise();
@@ -231,9 +243,22 @@ export class AWSHelper {
     }
   }
 
+  generateRandomPassword(length) {
+    const charset =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+    let password = '';
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset.charAt(randomIndex);
+    }
+
+    return password;
+  }
+
   // async deleteIAMUser(
   //   userName: string,
-  //   userPolicyArn: string,
+  //   userpolicy: string,
   //   // arnName: string,
   // ) {
   //   try {
@@ -244,7 +269,7 @@ export class AWSHelper {
   //     }
   //     // Detach user policy
   //     await this.iam
-  //       .detachUserPolicy({ UserName: userName, PolicyArn: userPolicyArn })
+  //       .detachUserPolicy({ UserName: userName, policy: userpolicy })
   //       .promise();
 
   //     // Delete the user

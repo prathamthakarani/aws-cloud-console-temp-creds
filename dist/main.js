@@ -14,7 +14,7 @@ async function bootstrap() {
         .addBearerAuth()
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('swagger', app, document);
+    swagger_1.SwaggerModule.setup('aws-creds', app, document);
     await app.listen(3000);
 }
 bootstrap();

@@ -7,8 +7,9 @@ export declare class User {
     userName: string;
     password: string;
     role: UserRole;
-    arn: string;
+    policy: string;
     credsTs: Date;
     consoleTs: Date;
     accessKeyId: string;
+    policyName: string;
 }

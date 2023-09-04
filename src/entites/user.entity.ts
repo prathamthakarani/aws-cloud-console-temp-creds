@@ -23,8 +23,8 @@ export class User {
   })
   role: UserRole;
 
-  @Column({ nullable: true })
-  arn: string;
+  @Column('jsonb', { nullable: true })
+  policy: string;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
   credsTs: Date;
@@ -34,4 +34,7 @@ export class User {
 
   @Column({ nullable: true })
   accessKeyId: string;
+
+  @Column({ nullable: true })
+  policyName: string;
 }
