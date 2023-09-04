@@ -26,7 +26,8 @@ export class UserService {
         where: { userId },
       });
       const userName = getDataByUserId.userName;
-      const policyArn = getDataByUserId.arn;
+      const policy = getDataByUserId.policy;
+      const policyName = getDataByUserId.policyName;
 
       if (getDataByUserId?.accessKeyId) {
         await this.awsHelper.deleteAccessKey(
@@ -37,7 +38,8 @@ export class UserService {
       }
       const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
         userName,
-        policyArn,
+        policy,
+        policyName,
       );
       const currentDate = new Date();
       currentDate.setMinutes(currentDate.getMinutes() + 30);
@@ -74,12 +76,14 @@ export class UserService {
       }
       const userName = getDataByUserId.userName;
       // const userName = 'test-user-created';
-      const policyArn = getDataByUserId.arn;
+      const policy = getDataByUserId.policy;
+      const policyName = getDataByUserId.policyName;
       const isConsoleUser = true;
       const creds: any = await this.awsHelper.createConsoleCred(
         userName,
-        policyArn,
+        policy,
         isConsoleUser,
+        policyName,
       );
       if (creds) {
         const currentDate = new Date();
@@ -146,7 +150,7 @@ export class UserService {
       if (!data.consoleTs) {
         throw new BadRequestException('Console creds are not found to delete');
       }
-      await this.awsHelper.deleteConsoleAccess(data.userName, data.arn);
+      await this.awsHelper.deleteConsoleAccess(data.userName, data.policy);
 
       await this.dataSource.manager.update(
         User,

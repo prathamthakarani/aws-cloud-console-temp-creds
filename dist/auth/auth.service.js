@@ -39,7 +39,7 @@ let AuthService = exports.AuthService = class AuthService {
                         userId,
                         role: user.role,
                         userName: user.userName,
-                        arn: user.arn,
+                        policy: user.policy,
                     };
                     const token = await this.jwtService.signAsync(payload, {
                         secret: process.env.JWT_SECRET_KEY,

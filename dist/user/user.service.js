@@ -24,22 +24,29 @@ let UserService = exports.UserService = class UserService {
         this.awsHelper = awsHelper;
     }
     async getCreds(userId) {
-        const getDataByUserId = await this.dataSource.manager.findOne(entites_1.User, {
-            where: { userId },
-        });
-        const userName = getDataByUserId.userName;
-        const policyArn = getDataByUserId.arn;
-        if (getDataByUserId?.accessKeyId) {
-            this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
-            console.log('access key deleted');
+        try {
+            const getDataByUserId = await this.dataSource.manager.findOne(entites_1.User, {
+                where: { userId },
+            });
+            const userName = getDataByUserId.userName;
+            const policy = getDataByUserId.policy;
+            const policyName = getDataByUserId.policyName;
+            if (getDataByUserId?.accessKeyId) {
+                await this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
+                console.log('access key deleted');
+            }
+            const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(userName, policy, policyName);
+            const currentDate = new Date();
+            currentDate.setMinutes(currentDate.getMinutes() + 30);
+            console.log(creds);
+            await this.dataSource.manager.update(entites_1.User, { userName }, { credsTs: currentDate, accessKeyId: creds?.AccessKeyId });
+            console.log(creds);
+            return new common_response_dto_1.CommonResposneDto(false, 'Creds generated successfully', creds);
         }
-        const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(userName, policyArn);
-        const currentDate = new Date();
-        currentDate.setMinutes(currentDate.getMinutes() + 30);
-        console.log(creds);
-        await this.dataSource.manager.update(entites_1.User, { userName }, { credsTs: currentDate, accessKeyId: creds?.AccessKeyId });
-        console.log(creds);
-        return new common_response_dto_1.CommonResposneDto(false, 'Creds generated successfully', creds);
+        catch (error) {
+            console.log(error);
+            throw new common_1.BadGatewayException('Not able to process');
+        }
     }
     async createConsoleCreds(userId) {
         try {
@@ -49,9 +56,10 @@ let UserService = exports.UserService = class UserService {
             if (!getDataByUserId) {
             }
             const userName = getDataByUserId.userName;
-            const policyArn = getDataByUserId.arn;
+            const policy = getDataByUserId.policy;
+            const policyName = getDataByUserId.policyName;
             const isConsoleUser = true;
-            const creds = await this.awsHelper.createConsoleCred(userName, policyArn, isConsoleUser);
+            const creds = await this.awsHelper.createConsoleCred(userName, policy, isConsoleUser, policyName);
             if (creds) {
                 const currentDate = new Date();
                 currentDate.setMinutes(currentDate.getMinutes() + 30);
@@ -93,7 +101,7 @@ let UserService = exports.UserService = class UserService {
             if (!data.consoleTs) {
                 throw new common_1.BadRequestException('Console creds are not found to delete');
             }
-            await this.awsHelper.deleteConsoleAccess(data.userName, data.arn);
+            await this.awsHelper.deleteConsoleAccess(data.userName, data.policy);
             await this.dataSource.manager.update(entites_1.User, { userId: data.userId }, { consoleTs: null });
             return new common_response_dto_1.CommonResposneDto(false, 'Console creds deleted successfully');
         }

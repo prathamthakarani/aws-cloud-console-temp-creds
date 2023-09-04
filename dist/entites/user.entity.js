@@ -39,9 +39,9 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)('jsonb', { nullable: true }),
     __metadata("design:type", String)
-], User.prototype, "arn", void 0);
+], User.prototype, "policy", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'timestamptz', nullable: true, default: null }),
     __metadata("design:type", Date)
@@ -54,6 +54,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "accessKeyId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "policyName", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)({ name: 'users' })
 ], User);
