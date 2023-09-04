@@ -1,3 +1,4 @@
+import { AuditLog } from './audit.log';
 export declare enum UserRole {
     ADMIN = "admin",
     USER = "user"
@@ -12,4 +13,5 @@ export declare class User {
     consoleTs: Date;
     accessKeyId: string;
     policyName: string;
+    auditLogs: AuditLog[];
 }

@@ -38,9 +38,9 @@ let UserController = exports.UserController = class UserController {
     async deleteAction(action, req) {
         switch (action) {
             case delete_creds_dto_1.DeleteAction.AccessKey:
-                return this.userService.deleteAccessKey(req.user.userId);
+                return this.userService.deleteAccessKey(req.user.userId, false);
             case delete_creds_dto_1.DeleteAction.ConsoleCreds:
-                return this.userService.deleteConsoleCreds(req.user.userId);
+                return this.userService.deleteConsoleCreds(req.user.userId, false);
             default:
                 throw new Error('Invalid action specified');
         }

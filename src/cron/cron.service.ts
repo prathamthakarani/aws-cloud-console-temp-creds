@@ -39,7 +39,7 @@ export class CronService {
     // If data exist update it
     if (findConsoleCreds?.length !== 0) {
       for (const item of findConsoleCreds) {
-        await this.userService.deleteConsoleCreds(item.userId);
+        await this.userService.deleteConsoleCreds(item.userId, true);
       }
 
       console.log(
@@ -49,7 +49,7 @@ export class CronService {
 
     if (findCreds?.length !== 0) {
       for (const item of findCreds) {
-        await this.userService.deleteAccessKey(item.userId);
+        await this.userService.deleteAccessKey(item.userId, true);
       }
 
       console.log(`Removed creds access: numbers: ${findCreds.length}`);

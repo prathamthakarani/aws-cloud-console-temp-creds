@@ -7,6 +7,6 @@ export declare class UserService {
     constructor(dataSource: DataSource, awsHelper: AWSHelper);
     getCreds(userId: number): Promise<CommonResposneDto>;
     createConsoleCreds(userId: number): Promise<CommonResposneDto>;
-    deleteAccessKey(userId: any): Promise<CommonResposneDto>;
-    deleteConsoleCreds(userId: any): Promise<CommonResposneDto>;
+    deleteAccessKey(userId: any, isCron: any): Promise<CommonResposneDto>;
+    deleteConsoleCreds(userId: any, isCron: any): Promise<CommonResposneDto>;
 }

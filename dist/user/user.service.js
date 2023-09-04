@@ -18,6 +18,7 @@ const entites_1 = require("../entites");
 const typeorm_1 = require("typeorm");
 const aws_helper_1 = require("../helper/aws.helper");
 const common_response_dto_1 = require("../dto/common.response.dto");
+const audit_log_1 = require("../entites/audit.log");
 let UserService = exports.UserService = class UserService {
     constructor(dataSource, awsHelper) {
         this.dataSource = dataSource;
@@ -33,6 +34,11 @@ let UserService = exports.UserService = class UserService {
             const policyName = getDataByUserId.policyName;
             if (getDataByUserId?.accessKeyId) {
                 await this.awsHelper.deleteAccessKey(userName, getDataByUserId.accessKeyId);
+                await this.dataSource.manager.insert(audit_log_1.AuditLog, {
+                    userId,
+                    action: audit_log_1.AuditAction.CREDS_DELETED,
+                    actionPerformedBy: userName,
+                });
                 console.log('access key deleted');
             }
             const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(userName, policy, policyName);
@@ -41,6 +47,11 @@ let UserService = exports.UserService = class UserService {
             console.log(creds);
             await this.dataSource.manager.update(entites_1.User, { userName }, { credsTs: currentDate, accessKeyId: creds?.AccessKeyId });
             console.log(creds);
+            await this.dataSource.manager.insert(audit_log_1.AuditLog, {
+                userId,
+                action: audit_log_1.AuditAction.CREDS_CREATED,
+                actionPerformedBy: userName,
+            });
             return new common_response_dto_1.CommonResposneDto(false, 'Creds generated successfully', creds);
         }
         catch (error) {
@@ -67,13 +78,18 @@ let UserService = exports.UserService = class UserService {
                 await this.dataSource.manager.update(entites_1.User, { userName }, { consoleTs: currentDate });
                 creds.accountId = process.env.AWS_ACCOUNT_ID;
             }
+            await this.dataSource.manager.insert(audit_log_1.AuditLog, {
+                userId,
+                action: audit_log_1.AuditAction.CONSOLE_CREDS_CREATED,
+                actionPerformedBy: userName,
+            });
             return new common_response_dto_1.CommonResposneDto(false, 'Creds generated successfully', creds);
         }
         catch (error) {
             throw new common_1.BadGatewayException('Not able to process right now');
         }
     }
-    async deleteAccessKey(userId) {
+    async deleteAccessKey(userId, isCron) {
         try {
             const data = await this.dataSource.manager.findOne(entites_1.User, {
                 where: { userId },
@@ -83,6 +99,16 @@ let UserService = exports.UserService = class UserService {
             }
             await this.awsHelper.deleteAccessKey(data.userName, data.accessKeyId);
             await this.dataSource.manager.update(entites_1.User, { userId: data.userId }, { credsTs: null, accessKeyId: null });
+            let actionPerformedBy = data.userName;
+            if (isCron) {
+                console.log('Is cron', isCron);
+                actionPerformedBy = 'cron job';
+            }
+            await this.dataSource.manager.insert(audit_log_1.AuditLog, {
+                userId,
+                action: audit_log_1.AuditAction.CREDS_DELETED,
+                actionPerformedBy,
+            });
             return new common_response_dto_1.CommonResposneDto(false, 'Creds deleted successfully');
         }
         catch (error) {
@@ -93,7 +119,7 @@ let UserService = exports.UserService = class UserService {
             throw new common_1.BadGatewayException('Not able to process right now');
         }
     }
-    async deleteConsoleCreds(userId) {
+    async deleteConsoleCreds(userId, isCron) {
         try {
             const data = await this.dataSource.manager.findOne(entites_1.User, {
                 where: { userId },
@@ -103,6 +129,16 @@ let UserService = exports.UserService = class UserService {
             }
             await this.awsHelper.deleteConsoleAccess(data.userName, data.policy);
             await this.dataSource.manager.update(entites_1.User, { userId: data.userId }, { consoleTs: null });
+            let actionPerformedBy = data.userName;
+            if (isCron) {
+                console.log('Is cron', isCron);
+                actionPerformedBy = 'cron job';
+            }
+            await this.dataSource.manager.insert(audit_log_1.AuditLog, {
+                userId,
+                action: audit_log_1.AuditAction.CONSOLE_CREDS_DELETED,
+                actionPerformedBy,
+            });
             return new common_response_dto_1.CommonResposneDto(false, 'Console creds deleted successfully');
         }
         catch (error) {

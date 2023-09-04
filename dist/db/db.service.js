@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DbConnection = void 0;
 const config_1 = require("@nestjs/config");
 const entites_1 = require("../entites");
+const audit_log_1 = require("../entites/audit.log");
 const audit_log_entity_1 = require("../entites/audit.log.entity");
 const typeorm_1 = require("typeorm");
 exports.DbConnection = [
@@ -17,7 +18,7 @@ exports.DbConnection = [
                 password: process.env.DB_PASSWORD,
                 database: process.env.DB_NAME,
                 synchronize: true,
-                entities: [entites_1.User, audit_log_entity_1.Log],
+                entities: [entites_1.User, audit_log_entity_1.Log, audit_log_1.AuditLog],
                 logging: true,
                 ssl: { rejectUnauthorized: false },
             });

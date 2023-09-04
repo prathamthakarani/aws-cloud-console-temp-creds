@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { AuditLog } from './audit.log';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -37,4 +38,7 @@ export class User {
 
   @Column({ nullable: true })
   policyName: string;
+
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.userId)
+  auditLogs: AuditLog[];
 }

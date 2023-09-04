@@ -38,13 +38,13 @@ let CronService = exports.CronService = class CronService {
         console.log('🚀 ~ file: cron.service.ts:25 ~ CronService ~ handleCron ~ findCreds:', findCreds);
         if (findConsoleCreds?.length !== 0) {
             for (const item of findConsoleCreds) {
-                await this.userService.deleteConsoleCreds(item.userId);
+                await this.userService.deleteConsoleCreds(item.userId, true);
             }
             console.log(`Removed console access: numbers: ${findConsoleCreds.length}`);
         }
         if (findCreds?.length !== 0) {
             for (const item of findCreds) {
-                await this.userService.deleteAccessKey(item.userId);
+                await this.userService.deleteAccessKey(item.userId, true);
             }
             console.log(`Removed creds access: numbers: ${findCreds.length}`);
         }

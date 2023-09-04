@@ -1,7 +1,21 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AWSHelper = void 0;
+const common_1 = require("@nestjs/common");
 const AWS = require("aws-sdk");
+const typeorm_1 = require("typeorm");
 AWS.config.update({
     credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -10,8 +24,9 @@ AWS.config.update({
     region: process.env.AWS_REGION,
 });
 const iam = new AWS.IAM();
-class AWSHelper {
-    constructor() {
+let AWSHelper = exports.AWSHelper = class AWSHelper {
+    constructor(dataSource) {
+        this.dataSource = dataSource;
         this.iam = new AWS.IAM({ apiVersion: '2010-05-08' });
     }
     async createIAMUserWithKeysAndPolicy(username, policy, policyName) {
@@ -162,6 +177,9 @@ class AWSHelper {
         }
         return password;
     }
-}
-exports.AWSHelper = AWSHelper;
+};
+exports.AWSHelper = AWSHelper = __decorate([
+    __param(0, (0, common_1.Inject)('DataSource')),
+    __metadata("design:paramtypes", [typeorm_1.DataSource])
+], AWSHelper);
 //# sourceMappingURL=aws.helper.js.map

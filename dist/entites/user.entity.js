@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = exports.UserRole = void 0;
 const typeorm_1 = require("typeorm");
+const audit_log_1 = require("./audit.log");
 var UserRole;
 (function (UserRole) {
     UserRole["ADMIN"] = "admin";
@@ -58,6 +59,10 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "policyName", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => audit_log_1.AuditLog, (auditLog) => auditLog.userId),
+    __metadata("design:type", Array)
+], User.prototype, "auditLogs", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)({ name: 'users' })
 ], User);

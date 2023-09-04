@@ -1,4 +1,7 @@
+import { Inject } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
+import { AuditLog } from 'src/entites/audit.log';
+import { DataSource } from 'typeorm';
 
 AWS.config.update({
   credentials: {
@@ -12,7 +15,7 @@ const iam = new AWS.IAM();
 
 export class AWSHelper {
   private iam: AWS.IAM;
-  constructor() {
+  constructor(@Inject('DataSource') private dataSource: DataSource) {
     this.iam = new AWS.IAM({ apiVersion: '2010-05-08' });
   }
 
@@ -61,6 +64,7 @@ export class AWSHelper {
         .deleteAccessKey(deleteAccessKeyParams)
         .promise();
       console.log('Access key deleted:', deleteResponse);
+      // Update here as well
     } catch (error) {
       console.error('Error:', error);
     }
@@ -143,6 +147,7 @@ export class AWSHelper {
     };
 
     await this.iam.createLoginProfile(createLoginProfileParams).promise();
+    // Login profile created
     return createLoginProfileParams;
   }
 
@@ -190,6 +195,7 @@ export class AWSHelper {
     try {
       console.log(policyName, '**********************************');
       const createUserResponse = await this.iam.createUser(params).promise();
+      //Update create IAM user
       const attachPolicyParams = {
         PolicyName: policyName,
         PolicyDocument: JSON.stringify(policy),
@@ -197,6 +203,7 @@ export class AWSHelper {
       };
 
       await this.iam.putUserPolicy(attachPolicyParams).promise();
+      // Update (attatch)policy
       if (isConsoleUser) {
         console.log('This should be not execute');
         return await this.createLoginProfileForConsole(userName);

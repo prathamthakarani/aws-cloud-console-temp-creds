@@ -62,9 +62,9 @@ export class UserController {
   async deleteAction(@Param('action') action: DeleteAction, @Req() req) {
     switch (action) {
       case DeleteAction.AccessKey:
-        return this.userService.deleteAccessKey(req.user.userId);
+        return this.userService.deleteAccessKey(req.user.userId, false);
       case DeleteAction.ConsoleCreds:
-        return this.userService.deleteConsoleCreds(req.user.userId);
+        return this.userService.deleteConsoleCreds(req.user.userId, false);
       default:
         throw new Error('Invalid action specified');
     }

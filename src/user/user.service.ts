@@ -8,6 +8,7 @@ import { User } from 'src/entites';
 import { DataSource } from 'typeorm';
 import { AWSHelper } from 'src/helper/aws.helper';
 import { CommonResposneDto } from 'src/dto/common.response.dto';
+import { AuditAction, AuditLog } from 'src/entites/audit.log';
 
 @Injectable()
 export class UserService {
@@ -34,6 +35,11 @@ export class UserService {
           userName,
           getDataByUserId.accessKeyId,
         );
+        await this.dataSource.manager.insert(AuditLog, {
+          userId,
+          action: AuditAction.CREDS_DELETED,
+          actionPerformedBy: userName,
+        });
         console.log('access key deleted');
       }
       const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
@@ -50,6 +56,12 @@ export class UserService {
         { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
       );
       console.log(creds);
+      // Make audit log
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CREDS_CREATED,
+        actionPerformedBy: userName,
+      });
       return new CommonResposneDto(
         false,
         'Creds generated successfully',
@@ -97,6 +109,11 @@ export class UserService {
 
         creds.accountId = process.env.AWS_ACCOUNT_ID;
       }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CONSOLE_CREDS_CREATED,
+        actionPerformedBy: userName,
+      });
       // return creds;
       return new CommonResposneDto(
         false,
@@ -113,7 +130,7 @@ export class UserService {
    * @param userId
    * @returns
    */
-  async deleteAccessKey(userId) {
+  async deleteAccessKey(userId, isCron) {
     try {
       const data = await this.dataSource.manager.findOne(User, {
         where: { userId },
@@ -127,6 +144,16 @@ export class UserService {
         { userId: data.userId },
         { credsTs: null, accessKeyId: null },
       );
+      let actionPerformedBy = data.userName;
+      if (isCron) {
+        console.log('Is cron', isCron);
+        actionPerformedBy = 'cron job';
+      }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CREDS_DELETED,
+        actionPerformedBy,
+      });
       return new CommonResposneDto(false, 'Creds deleted successfully');
     } catch (error) {
       console.log(error);
@@ -142,7 +169,7 @@ export class UserService {
    * @param userId
    * @returns
    */
-  async deleteConsoleCreds(userId) {
+  async deleteConsoleCreds(userId, isCron) {
     try {
       const data = await this.dataSource.manager.findOne(User, {
         where: { userId },
@@ -157,6 +184,16 @@ export class UserService {
         { userId: data.userId },
         { consoleTs: null },
       );
+      let actionPerformedBy = data.userName;
+      if (isCron) {
+        console.log('Is cron', isCron);
+        actionPerformedBy = 'cron job';
+      }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CONSOLE_CREDS_DELETED,
+        actionPerformedBy,
+      });
 
       return new CommonResposneDto(false, 'Console creds deleted successfully');
     } catch (error) {

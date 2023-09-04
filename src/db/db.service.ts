@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/entites';
+import { AuditLog } from 'src/entites/audit.log';
 import { Log } from 'src/entites/audit.log.entity';
 import { DataSource } from 'typeorm';
 
@@ -15,7 +16,7 @@ export const DbConnection = [
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         synchronize: true,
-        entities: [User, Log],
+        entities: [User, Log, AuditLog],
         logging: true,
         ssl: { rejectUnauthorized: false },
       });
