@@ -15,37 +15,57 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminService = void 0;
 const common_1 = require("@nestjs/common");
 const common_response_dto_1 = require("../dto/common.response.dto");
-const audit_log_entity_1 = require("../entites/audit.log.entity");
+const audit_log_1 = require("../entites/audit.log");
 const typeorm_1 = require("typeorm");
 let AdminService = exports.AdminService = class AdminService {
     constructor(dataSource) {
         this.dataSource = dataSource;
     }
     async getLogs(queryDto) {
-        const { method, path, userId, userName, startDate, endDate } = queryDto;
-        const whereObject = {};
-        if (method) {
-            whereObject.method = (0, typeorm_1.ILike)(`%${method}%`);
+        try {
+            console.log('Hey its here');
+            const { userId, startDate, endDate, action, actionPerformedBy } = queryDto;
+            console.log(action, actionPerformedBy);
+            const whereObject = {};
+            if (actionPerformedBy) {
+                whereObject.actionPerformedBy = (0, typeorm_1.ILike)(`%${actionPerformedBy}%`);
+            }
+            if (action) {
+                whereObject.action = action;
+            }
+            if (userId) {
+                whereObject.userId = userId;
+            }
+            if (startDate) {
+                whereObject.timestamp = (0, typeorm_1.MoreThan)(startDate);
+            }
+            if (endDate) {
+                whereObject.timestamp = (0, typeorm_1.LessThan)(endDate);
+            }
+            const logsData = await this.dataSource.manager.find(audit_log_1.AuditLog, {
+                where: whereObject,
+                relations: { user: true },
+                select: {
+                    action: true,
+                    actionPerformedBy: true,
+                    timestamp: true,
+                    id: true,
+                    user: {
+                        userId: true,
+                        userName: true,
+                        policy: true,
+                        credsTs: true,
+                        consoleTs: true,
+                        policyName: true,
+                    },
+                },
+            });
+            return new common_response_dto_1.CommonResposneDto(false, undefined, logsData);
         }
-        if (path) {
-            whereObject.path = (0, typeorm_1.ILike)(`%${path}%`);
+        catch (error) {
+            console.log(error);
+            throw new common_1.BadGatewayException('Not able to fetch audit logs');
         }
-        if (userId) {
-            whereObject.userId = userId;
-        }
-        if (userName) {
-            whereObject.userName = (0, typeorm_1.ILike)(`%${userName}%`);
-        }
-        if (startDate) {
-            whereObject.timestamp = (0, typeorm_1.MoreThan)(startDate);
-        }
-        if (endDate) {
-            whereObject.timestamp = (0, typeorm_1.LessThan)(endDate);
-        }
-        const logsData = await this.dataSource.manager.find(audit_log_entity_1.Log, {
-            where: whereObject,
-        });
-        return new common_response_dto_1.CommonResposneDto(false, undefined, logsData);
     }
 };
 exports.AdminService = AdminService = __decorate([

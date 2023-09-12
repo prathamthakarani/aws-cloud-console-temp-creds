@@ -6,26 +6,26 @@ export declare class AWSHelper {
     constructor(dataSource: DataSource);
     createIAMUserWithKeysAndPolicy(username: any, policy: any, policyName: any): Promise<AWS.IAM.AccessKey>;
     deleteAccessKey(iamUsername: any, accessKeyId: any): Promise<void>;
-    createIAMUserForConsole(userName: string, policy: string, isConsoleUser: any, policyName: any): Promise<"error" | {
+    createIAMUserForConsole(userName: string, policy: string, isConsoleUser: any, policyName: any): Promise<{
         UserName: any;
         Password: string;
         PasswordResetRequired: boolean;
-    } | "Some errorr">;
-    createConsoleCred(userName: string, policy: string, isConsoleUser: any, policyName: any): Promise<"error" | {
+    } | "error" | "Some errorr">;
+    createConsoleCred(userName: string, policy: string, isConsoleUser: any, policyName: any): Promise<{
         UserName: any;
         Password: string;
         PasswordResetRequired: boolean;
-    } | "Some errorr">;
+    } | "error" | "Some errorr">;
     createLoginProfileForConsole(userName: any): Promise<{
         UserName: any;
         Password: string;
         PasswordResetRequired: boolean;
     }>;
-    deleteLoginProfile(userName: string, policy: string, isConsoleUser: any): Promise<"error" | {
+    deleteLoginProfile(userName: string, policy: string, isConsoleUser: any): Promise<{
         UserName: any;
         Password: string;
         PasswordResetRequired: boolean;
-    }>;
+    } | "error">;
     createIAMUser(userName: string, policy: string, isConsoleUser: boolean, policyName: string): Promise<{
         UserName: any;
         Password: string;

@@ -83,9 +83,7 @@ export class UserService {
       const getDataByUserId = await this.dataSource.manager.findOne(User, {
         where: { userId },
       });
-      if (!getDataByUserId) {
-        //throe
-      }
+
       const userName = getDataByUserId.userName;
       // const userName = 'test-user-created';
       const policy = getDataByUserId.policy;

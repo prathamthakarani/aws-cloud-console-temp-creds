@@ -22,8 +22,8 @@ import { LoggingInterceptor } from 'src/interceptor/logging.interceptor';
 import { DeleteAction } from 'src/dto/delete.creds.dto';
 import { AWSHelper } from 'src/helper/aws.helper';
 
-@ApiTags('user') // Add an API tag
-@ApiBearerAuth() // Specify bearer token authentication
+@ApiTags('user')
+@ApiBearerAuth()
 @Controller('user')
 @UseInterceptors(LoggingInterceptor)
 @UseGuards(AuthGuard('jwt'), new RoleGuard(UserRole.USER))

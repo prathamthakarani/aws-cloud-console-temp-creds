@@ -64,8 +64,6 @@ let UserService = exports.UserService = class UserService {
             const getDataByUserId = await this.dataSource.manager.findOne(entites_1.User, {
                 where: { userId },
             });
-            if (!getDataByUserId) {
-            }
             const userName = getDataByUserId.userName;
             const policy = getDataByUserId.policy;
             const policyName = getDataByUserId.policyName;

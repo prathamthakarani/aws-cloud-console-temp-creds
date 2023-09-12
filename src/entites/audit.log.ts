@@ -13,7 +13,6 @@ export enum AuditAction {
   CREDS_DELETED = 'creds_deleted',
   CONSOLE_CREDS_CREATED = 'console_creds_created',
   CONSOLE_CREDS_DELETED = 'console_creds_deleted',
-  IAM_USER_CREATED = 'iam_user_created',
 }
 
 @Entity({ name: 'audit_logs' })
@@ -25,11 +24,12 @@ export class AuditLog {
   action: AuditAction;
 
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt: Date;
+  timestamp: Date;
 
   @ManyToOne(() => User, (user) => user.auditLogs)
-  user: User;
   @JoinColumn({ name: 'userId' })
+  user: User;
+  @Column({ name: 'userId' })
   userId: number;
 
   @Column()

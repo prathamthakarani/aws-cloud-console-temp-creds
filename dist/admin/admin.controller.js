@@ -19,44 +19,24 @@ const role_guard_1 = require("../guard/role.guard");
 const admin_service_1 = require("./admin.service");
 const entites_1 = require("../entites");
 const swagger_1 = require("@nestjs/swagger");
-const query_dto_1 = require("../dto/query.dto");
+const audit_log_dto_1 = require("../dto/audit.log.dto");
 let AdminController = exports.AdminController = class AdminController {
     constructor(adminService) {
         this.adminService = adminService;
     }
-    async getLogs(queryDto) {
+    async getAuditLogs(queryDto) {
         return await this.adminService.getLogs(queryDto);
     }
 };
 __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Get audit logs' }),
-    (0, swagger_1.ApiQuery)({
-        name: 'userName',
-        required: false,
-        description: 'Username for filtering',
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'userId',
-        required: false,
-        description: 'User ID for filtering',
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'method',
-        required: false,
-        description: 'HTTP method for filtering',
-    }),
-    (0, swagger_1.ApiQuery)({
-        name: 'path',
-        required: false,
-        description: 'URL path for filtering',
-    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Logs retrieved successfully' }),
     (0, common_1.Get)('/audit-logs'),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [query_dto_1.QueryDto]),
+    __metadata("design:paramtypes", [audit_log_dto_1.AuditQueryDto]),
     __metadata("design:returntype", Promise)
-], AdminController.prototype, "getLogs", null);
+], AdminController.prototype, "getAuditLogs", null);
 exports.AdminController = AdminController = __decorate([
     (0, swagger_1.ApiTags)('admin'),
     (0, swagger_1.ApiBearerAuth)(),
