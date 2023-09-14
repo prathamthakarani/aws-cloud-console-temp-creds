@@ -15,7 +15,9 @@ export class UserService {
   constructor(
     @Inject('DataSource') private dataSource: DataSource,
     private awsHelper: AWSHelper,
-  ) {}
+  ) {
+    // console.log(typeof +process.env.CONSOLE_CREDS_EXPIRATION_TIME);
+  }
   /**
    * Get IAM user creds (access & secret key)
    * @param userId
@@ -48,7 +50,9 @@ export class UserService {
         policyName,
       );
       const currentDate = new Date();
-      currentDate.setMinutes(currentDate.getMinutes() + 30);
+      currentDate.setMinutes(
+        currentDate.getMinutes() + +process.env.CREDS_EXPIRATION_TIME,
+      );
       console.log(creds);
       await this.dataSource.manager.update(
         User,
@@ -97,7 +101,9 @@ export class UserService {
       );
       if (creds) {
         const currentDate = new Date();
-        currentDate.setMinutes(currentDate.getMinutes() + 30);
+        currentDate.setMinutes(
+          currentDate.getMinutes() + +process.env.CONSOLE_CREDS_EXPIRATION_TIME,
+        );
         console.log(currentDate);
         await this.dataSource.manager.update(
           User,
