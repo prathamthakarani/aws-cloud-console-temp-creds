@@ -20,7 +20,7 @@ export class CronService {
 
     // Find the data for console creds
     const findConsoleCreds = await this.dataSource.manager.find(User, {
-      where: { consoleTs: LessThan(currenDate) },
+      where: { consoleExpiryTs: LessThan(currenDate) },
     });
     console.log(
       '🚀 ~ file: cron.service.ts:23 ~ CronService ~ handleCron ~ findConsoleCreds:',
@@ -29,7 +29,7 @@ export class CronService {
 
     // Find the data for find creds
     const findCreds = await this.dataSource.manager.find(User, {
-      where: { credsTs: LessThan(currenDate) },
+      where: { credsExpiryTs: LessThan(currenDate) },
     });
     console.log(
       '🚀 ~ file: cron.service.ts:25 ~ CronService ~ handleCron ~ findCreds:',

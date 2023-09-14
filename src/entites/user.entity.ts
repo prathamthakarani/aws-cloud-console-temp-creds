@@ -28,10 +28,10 @@ export class User {
   policy: string;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  credsTs: Date;
+  credsExpiryTs: Date;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  consoleTs: Date;
+  consoleExpiryTs: Date;
 
   @Column({ nullable: true })
   accessKeyId: string;

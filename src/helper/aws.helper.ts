@@ -1,5 +1,6 @@
-import { Inject } from '@nestjs/common';
+import { BadRequestException, Inject } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
+// import accessanalyzer from 'aws-sdk/clients/accessanalyzer';
 import { AuditLog } from 'src/entites/audit.log';
 import { DataSource } from 'typeorm';
 
@@ -12,6 +13,7 @@ AWS.config.update({
 });
 
 const iam = new AWS.IAM();
+const accessanalyzer = new AWS.AccessAnalyzer();
 
 export class AWSHelper {
   private iam: AWS.IAM;
@@ -201,6 +203,33 @@ export class AWSHelper {
         PolicyDocument: JSON.stringify(policy),
         UserName: userName,
       };
+      console.log(
+        '🚀 ~ file: aws.helper.ts:206 ~ AWSHelper ~ attachPolicyParams:',
+        attachPolicyParams,
+      );
+
+      const policyParams = {
+        policyDocument: JSON.stringify(policy),
+        policyType: 'IDENTITY_POLICY',
+      };
+      console.log(
+        '🚀 ~ file: aws.helper.ts:215 ~ AWSHelper ~ policyParams:',
+        policyParams,
+      );
+
+      /**
+       * To validate the JSON identity policy
+       */
+      accessanalyzer.validatePolicy(policyParams, function (err, data) {
+        if (data.findings.length) {
+          console.log(data.findings.length);
+
+          console.log('Bhai errpor aa reli h ');
+          throw new BadRequestException('Policy is not validated');
+        } else {
+          console.log('Policy validated');
+        }
+      });
 
       await this.iam.putUserPolicy(attachPolicyParams).promise();
       // Update (attatch)policy

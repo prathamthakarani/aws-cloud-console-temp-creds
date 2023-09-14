@@ -53,7 +53,7 @@ export class UserService {
       await this.dataSource.manager.update(
         User,
         { userName },
-        { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
+        { credsExpiryTs: currentDate, accessKeyId: creds?.AccessKeyId },
       );
       console.log(creds);
       // Make audit log
@@ -102,7 +102,7 @@ export class UserService {
         await this.dataSource.manager.update(
           User,
           { userName },
-          { consoleTs: currentDate },
+          { consoleExpiryTs: currentDate },
         );
 
         creds.accountId = process.env.AWS_ACCOUNT_ID;
@@ -140,7 +140,7 @@ export class UserService {
       await this.dataSource.manager.update(
         User,
         { userId: data.userId },
-        { credsTs: null, accessKeyId: null },
+        { credsExpiryTs: null, accessKeyId: null },
       );
       let actionPerformedBy = data.userName;
       if (isCron) {
@@ -172,7 +172,7 @@ export class UserService {
       const data = await this.dataSource.manager.findOne(User, {
         where: { userId },
       });
-      if (!data.consoleTs) {
+      if (!data.consoleExpiryTs) {
         throw new BadRequestException('Console creds are not found to delete');
       }
       await this.awsHelper.deleteConsoleAccess(data.userName, data.policy);
@@ -180,7 +180,7 @@ export class UserService {
       await this.dataSource.manager.update(
         User,
         { userId: data.userId },
-        { consoleTs: null },
+        { consoleExpiryTs: null },
       );
       let actionPerformedBy = data.userName;
       if (isCron) {
