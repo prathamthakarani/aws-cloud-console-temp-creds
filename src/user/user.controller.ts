@@ -22,8 +22,8 @@ import { LoggingInterceptor } from 'src/interceptor/logging.interceptor';
 import { DeleteAction } from 'src/dto/delete.creds.dto';
 import { AWSHelper } from 'src/helper/aws.helper';
 
-@ApiTags('user') // Add an API tag
-@ApiBearerAuth() // Specify bearer token authentication
+@ApiTags('user')
+@ApiBearerAuth()
 @Controller('user')
 @UseInterceptors(LoggingInterceptor)
 @UseGuards(AuthGuard('jwt'), new RoleGuard(UserRole.USER))
@@ -62,9 +62,9 @@ export class UserController {
   async deleteAction(@Param('action') action: DeleteAction, @Req() req) {
     switch (action) {
       case DeleteAction.AccessKey:
-        return this.userService.deleteAccessKey(req.user.userId);
+        return this.userService.deleteAccessKey(req.user.userId, false);
       case DeleteAction.ConsoleCreds:
-        return this.userService.deleteConsoleCreds(req.user.userId);
+        return this.userService.deleteConsoleCreds(req.user.userId, false);
       default:
         throw new Error('Invalid action specified');
     }

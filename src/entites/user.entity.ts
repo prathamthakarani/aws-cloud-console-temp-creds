@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { AuditLog } from './audit.log';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -23,15 +24,21 @@ export class User {
   })
   role: UserRole;
 
-  @Column({ nullable: true })
-  arn: string;
+  @Column('jsonb', { nullable: true })
+  policy: string;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  credsTs: Date;
+  credsExpiryTs: Date;
 
   @Column({ type: 'timestamptz', nullable: true, default: null })
-  consoleTs: Date;
+  consoleExpiryTs: Date;
 
   @Column({ nullable: true })
   accessKeyId: string;
+
+  @Column({ nullable: true })
+  policyName: string;
+
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.userId)
+  auditLogs: AuditLog[];
 }

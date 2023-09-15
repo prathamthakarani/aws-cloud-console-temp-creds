@@ -8,13 +8,16 @@ import { User } from 'src/entites';
 import { DataSource } from 'typeorm';
 import { AWSHelper } from 'src/helper/aws.helper';
 import { CommonResposneDto } from 'src/dto/common.response.dto';
+import { AuditAction, AuditLog } from 'src/entites/audit.log';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('DataSource') private dataSource: DataSource,
     private awsHelper: AWSHelper,
-  ) {}
+  ) {
+    // console.log(typeof +process.env.CONSOLE_CREDS_EXPIRATION_TIME);
+  }
   /**
    * Get IAM user creds (access & secret key)
    * @param userId
@@ -26,28 +29,43 @@ export class UserService {
         where: { userId },
       });
       const userName = getDataByUserId.userName;
-      const policyArn = getDataByUserId.arn;
+      const policy = getDataByUserId.policy;
+      const policyName = getDataByUserId.policyName;
 
       if (getDataByUserId?.accessKeyId) {
         await this.awsHelper.deleteAccessKey(
           userName,
           getDataByUserId.accessKeyId,
         );
+        await this.dataSource.manager.insert(AuditLog, {
+          userId,
+          action: AuditAction.CREDS_DELETED,
+          actionPerformedBy: userName,
+        });
         console.log('access key deleted');
       }
       const creds = await this.awsHelper.createIAMUserWithKeysAndPolicy(
         userName,
-        policyArn,
+        policy,
+        policyName,
       );
       const currentDate = new Date();
-      currentDate.setMinutes(currentDate.getMinutes() + 30);
+      currentDate.setMinutes(
+        currentDate.getMinutes() + +process.env.CREDS_EXPIRATION_TIME,
+      );
       console.log(creds);
       await this.dataSource.manager.update(
         User,
         { userName },
-        { credsTs: currentDate, accessKeyId: creds?.AccessKeyId },
+        { credsExpiryTs: currentDate, accessKeyId: creds?.AccessKeyId },
       );
       console.log(creds);
+      // Make audit log
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CREDS_CREATED,
+        actionPerformedBy: userName,
+      });
       return new CommonResposneDto(
         false,
         'Creds generated successfully',
@@ -69,30 +87,37 @@ export class UserService {
       const getDataByUserId = await this.dataSource.manager.findOne(User, {
         where: { userId },
       });
-      if (!getDataByUserId) {
-        //throe
-      }
+
       const userName = getDataByUserId.userName;
       // const userName = 'test-user-created';
-      const policyArn = getDataByUserId.arn;
+      const policy = getDataByUserId.policy;
+      const policyName = getDataByUserId.policyName;
       const isConsoleUser = true;
       const creds: any = await this.awsHelper.createConsoleCred(
         userName,
-        policyArn,
+        policy,
         isConsoleUser,
+        policyName,
       );
       if (creds) {
         const currentDate = new Date();
-        currentDate.setMinutes(currentDate.getMinutes() + 30);
+        currentDate.setMinutes(
+          currentDate.getMinutes() + +process.env.CONSOLE_CREDS_EXPIRATION_TIME,
+        );
         console.log(currentDate);
         await this.dataSource.manager.update(
           User,
           { userName },
-          { consoleTs: currentDate },
+          { consoleExpiryTs: currentDate },
         );
 
         creds.accountId = process.env.AWS_ACCOUNT_ID;
       }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CONSOLE_CREDS_CREATED,
+        actionPerformedBy: userName,
+      });
       // return creds;
       return new CommonResposneDto(
         false,
@@ -109,7 +134,7 @@ export class UserService {
    * @param userId
    * @returns
    */
-  async deleteAccessKey(userId) {
+  async deleteAccessKey(userId, isCron) {
     try {
       const data = await this.dataSource.manager.findOne(User, {
         where: { userId },
@@ -121,8 +146,18 @@ export class UserService {
       await this.dataSource.manager.update(
         User,
         { userId: data.userId },
-        { credsTs: null, accessKeyId: null },
+        { credsExpiryTs: null, accessKeyId: null },
       );
+      let actionPerformedBy = data.userName;
+      if (isCron) {
+        console.log('Is cron', isCron);
+        actionPerformedBy = 'cron job';
+      }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CREDS_DELETED,
+        actionPerformedBy,
+      });
       return new CommonResposneDto(false, 'Creds deleted successfully');
     } catch (error) {
       console.log(error);
@@ -138,21 +173,31 @@ export class UserService {
    * @param userId
    * @returns
    */
-  async deleteConsoleCreds(userId) {
+  async deleteConsoleCreds(userId, isCron) {
     try {
       const data = await this.dataSource.manager.findOne(User, {
         where: { userId },
       });
-      if (!data.consoleTs) {
+      if (!data.consoleExpiryTs) {
         throw new BadRequestException('Console creds are not found to delete');
       }
-      await this.awsHelper.deleteConsoleAccess(data.userName, data.arn);
+      await this.awsHelper.deleteConsoleAccess(data.userName, data.policy);
 
       await this.dataSource.manager.update(
         User,
         { userId: data.userId },
-        { consoleTs: null },
+        { consoleExpiryTs: null },
       );
+      let actionPerformedBy = data.userName;
+      if (isCron) {
+        console.log('Is cron', isCron);
+        actionPerformedBy = 'cron job';
+      }
+      await this.dataSource.manager.insert(AuditLog, {
+        userId,
+        action: AuditAction.CONSOLE_CREDS_DELETED,
+        actionPerformedBy,
+      });
 
       return new CommonResposneDto(false, 'Console creds deleted successfully');
     } catch (error) {

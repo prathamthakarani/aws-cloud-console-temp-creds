@@ -33,7 +33,7 @@ export class AuthService {
             userId,
             role: user.role,
             userName: user.userName,
-            arn: user.arn,
+            policy: user.policy,
           };
           const token: string = await this.jwtService.signAsync(payload, {
             secret: process.env.JWT_SECRET_KEY,
