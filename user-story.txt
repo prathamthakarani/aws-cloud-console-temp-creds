@@ -1,0 +1,33 @@
+User Story for User Role:
+
+Title: User IAM and Console Access Management
+
+Story:
+As a User, I want to have the ability to manage my IAM access keys and console access in a secure and convenient manner.
+
+Acceptance Criteria:
+
+Successfully login with my username and password.
+Throw appropriate error if password is not correct.
+I have the option to create a temporary IAM access key that is valid for 30 minutes.
+I can also generate a temporary console access link that is valid for 30 minutes.
+I have the option to delete both the IAM access key and the console access link.
+The system ensures that generated access keys and links are secure and cannot be easily guessed or shared.
+If I try to use an expired access key or link, I am not able to access that.
+
+
+**************************************************************************************************************************
+User Story for Admin Role:
+Title: Admin Audit Log Access
+
+Story:
+As an Admin, I need to access and review the audit log of user actions within the Nest app to monitor user activities and ensure security.
+
+Acceptance Criteria:
+
+Login with admin user and password.
+Admin access is different from other users.
+In the "Audit Log" section, I can filter and view logs of user actions, including IAM access key creation, console access link generation, and deletion of both.
+The logs provide information about the user who performed the action, the action type, and the timestamp.
+I can filter logs by date, user, or action type to easily find the information I need.
+The audit log is secure and tamper-proof to maintain the integrity of the data.
